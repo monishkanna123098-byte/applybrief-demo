@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApplyBrief Demo — Decision Intelligence on Redrob</title>
+  <style>
+    :root {
+      --color-bg:      #F5F5F5;
+      --color-card:    #FFFFFF;
+      --color-teal:    #0F9D8C;
+      --color-navy:    #1B2A4A;
+      --color-text:    #212121;
+      --color-sec:     #757575;
+      --color-ter:     #9E9E9E;
+      --color-div:     #E0E0E0;
+      --color-rowdiv:  #F0F0F0;
+      --r-card:        8px;
+      --r-badge:       4px;
+      --r-btn:         6px;
+      --shadow:        0 1px 4px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: var(--color-text);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+    button { font-family: inherit; cursor: pointer; }
+    .demo-banner {
+      background: var(--color-navy);
+      color: #FFFFFF;
+      text-align: center;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      line-height: 1.4;
+    }
+    .app-shell { display: block; background: var(--color-bg); }
+    .top-nav {
+      position: sticky; top: 0; z-index: 20; height: 48px;
+      background: var(--color-card); border-bottom: 1px solid var(--color-div);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+    }
+    .top-nav-left { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: var(--color-teal); text-transform: uppercase; }
+    .top-nav-right { display: none; font-size: 12px; color: var(--color-ter); }
+    .left-panel { display: block; background: var(--color-card); border-bottom: 1px solid var(--color-div); padding: 16px; }
+    .left-panel-footer { display: none; font-size: 11px; color: #BDBDBD; text-align: center; padding-top: 16px; margin-top: auto; }
+    .right-panel { display: none; }
+    .center-panel { display: block; background: var(--color-bg); }
+    .tab-row {
+      position: sticky; top: 48px; z-index: 15;
+      background: var(--color-card); border-bottom: 1px solid var(--color-div);
+      display: flex; align-items: flex-end; height: 44px; padding: 0 16px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .tab-row::-webkit-scrollbar { display: none; }
+    .screen-content { padding: 12px 16px 80px; max-width: 100%; }
+    .verdict-card-mobile { display: block; }
+    .screen-footer { padding: 20px 0 8px; text-align: center; font-size: 12px; color: var(--color-ter); line-height: 1.8; border-top: 1px solid var(--color-div); margin-top: 4px; }
+    .mobile-bottom-bar {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--color-card); border-top: 1px solid var(--color-div);
+      padding: 12px 16px; justify-content: space-between; align-items: center; z-index: 100;
+    }
+    .mobile-bottom-bar-label { font-size: 11px; color: var(--color-ter); }
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .app-shell {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        grid-template-rows: 52px 1fr;
+        grid-template-areas: "nav nav" "left center";
+        height: calc(100vh - 33px); overflow: hidden; background: var(--color-bg);
+      }
+      .top-nav { grid-area: nav; position: static; height: 52px; padding: 0 24px; z-index: 10; }
+      .top-nav-right { display: block; }
+      .left-panel {
+        grid-area: left;
+        display: block;
+        border-bottom: none;
+        border-right: 1px solid var(--color-div);
+        min-height: 0;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 16px 12px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-div) transparent;
+      }
+      .left-panel-footer { display: block; margin-top: 12px; }
+      .center-panel { grid-area: center; display: flex; flex-direction: column; height: 100%; min-height: 0; overflow-y: auto; background: var(--color-bg); }
+      .tab-row { position: sticky; top: 0; padding: 0 16px; z-index: 5; flex-shrink: 0; }
+      .screen-content { flex: 1; padding: 16px; max-width: 100%; padding-bottom: 16px; }
+      .right-panel { display: none; }
+      .mobile-bottom-bar { display: none; }
+      .verdict-card-mobile { display: block; }
+    }
+    @media (min-width: 1025px) {
+      .app-shell {
+        display: grid;
+        grid-template-columns: 280px 1fr 300px;
+        grid-template-rows: 52px 1fr;
+        grid-template-areas: "nav nav nav" "left center right";
+        height: calc(100vh - 33px); overflow: hidden; background: var(--color-bg);
+      }
+      .top-nav { grid-area: nav; position: static; height: 52px; padding: 0 24px; justify-content: space-between; z-index: 10; }
+      .top-nav-right { display: block; }
+      .left-panel {
+        grid-area: left;
+        display: block;
+        border-bottom: none;
+        border-right: 1px solid var(--color-div);
+        min-height: 0;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 16px 12px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-div) transparent;
+      }
+      .left-panel-footer { display: block; margin-top: 12px; }
+      .center-panel { grid-area: center; display: flex; flex-direction: column; height: 100%; min-height: 0; overflow-y: auto; background: var(--color-bg); }
+      .tab-row { position: sticky; top: 0; padding: 0 24px; z-index: 5; flex-shrink: 0; }
+      .screen-content { flex: 1; padding: 16px 20px 24px; max-width: 680px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+      .right-panel {
+        grid-area: right;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        height: 100%;
+        border-left: 1px solid var(--color-div);
+        background: var(--color-card);
+        overflow: hidden;
+      }
+      .right-panel-content { flex: 1; padding: 16px 14px; overflow-y: auto; min-height: 0; }
+      .right-panel-cta { padding: 14px; border-top: 1px solid var(--color-div); background: var(--color-card); flex-shrink: 0; }
+      .right-panel-cta button { width: 100%; background: var(--color-teal); color: #FFFFFF; border: none; border-radius: var(--r-btn); padding: 13px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: filter 0.15s ease; }
+      .right-panel-cta button:hover { filter: brightness(0.92); }
+      .mobile-bottom-bar { display: none; }
+      .verdict-card-mobile { display: block; }
+      .tab-btn:hover { color: var(--color-text); }
+    }
+    .tab-btn {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      padding: 0 16px; height: 44px; font-size: 14px; font-family: inherit;
+      cursor: pointer; color: var(--color-sec); font-weight: 400;
+      white-space: nowrap; flex-shrink: 0;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+    .tab-btn.active { color: var(--color-text); font-weight: 600; border-bottom-color: var(--color-text); }
+    .screen { display: none; }
+    .screen.active { display: block; animation: screenFade 0.2s ease forwards; }
+    @keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
+    .card { background: var(--color-card); border-radius: var(--r-card); box-shadow: var(--shadow); margin-bottom: 8px; overflow: hidden; }
+    .card--teal-left { border-left: 3px solid var(--color-teal); }
+    .card-pad { padding: 16px; }
+    .card-pad.pb12 { padding-bottom: 12px; }
+    .divider { border: none; border-top: 1px solid var(--color-div); }
+    .listing-divider { border: none; border-top: 1px solid var(--color-div); margin: 12px 0; }
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--color-ter); text-transform: uppercase; margin-bottom: 8px; }
+    .section-label.no-mb { margin-bottom: 0; }
+    .section-label.teal  { color: var(--color-teal); }
+    .listing-title    { font-size: 20px; font-weight: 700; color: var(--color-text); line-height: 1.2; margin: 4px 0; }
+    .listing-title.md { font-size: 18px; }
+    .listing-sub      { font-size: 14px; color: var(--color-sec); }
+    .listing-count    { font-size: 13px; color: var(--color-ter); }
+    .card-subtext     { font-size: 13px; color: var(--color-sec); line-height: 1.5; }
+    .mt4 { margin-top: 4px; } .mt8 { margin-top: 8px; } .mt12 { margin-top: 12px; }
+    .mb8 { margin-bottom: 8px; } .mb12 { margin-bottom: 12px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: var(--r-badge); font-size: 12px; font-weight: 600; border: 1px solid transparent; white-space: nowrap; line-height: 1.6; }
+    .badge.lg      { font-size: 13px; padding: 4px 10px; }
+    .badge.match   { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
+    .badge.gap     { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
+    .badge.warn    { background: #FFF3E0; color: #E65100; border-color: #FFB74D; }
+    .badge.info    { background: #E3F2FD; color: #1565C0; border-color: #90CAF9; }
+    .badge.neutral { background: #F5F5F5; color: var(--color-sec); border-color: var(--color-div); }
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .verdict-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--color-teal); text-transform: uppercase; margin-bottom: 8px; }
+    .verdict-headline { font-size: 17px; font-weight: 600; color: var(--color-text); line-height: 1.3; margin-bottom: 8px; }
+    .verdict-body { font-size: 14px; color: #424242; line-height: 1.6; }
+    .skill-row { display: flex; align-items: center; min-height: 44px; padding: 12px 16px; border-bottom: 1px solid var(--color-rowdiv); gap: 12px; }
+    .skill-row.wrap { flex-wrap: wrap; }
+    .skill-row.no-border { border-bottom: none; }
+    .skill-name { flex: 1; min-width: 0; font-size: 14px; color: var(--color-text); }
+    .skill-desc { font-size: 12px; color: var(--color-ter); }
+    .gap-detail { background: #FFF8F8; border: 1px solid #FFCDD2; border-radius: 6px; padding: 12px; margin: 4px 16px 16px; }
+    .gap-signal     { font-size: 12px; font-weight: 600; color: var(--color-teal); margin-bottom: 4px; }
+    .gap-validation { font-size: 12px; color: var(--color-sec); margin-bottom: 8px; line-height: 1.5; }
+    .gap-action     { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; color: var(--color-sec); line-height: 1.5; }
+    .gap-action svg { flex-shrink: 0; margin-top: 2px; }
+    .exp-header    { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .exp-you       { font-size: 13px; color: var(--color-sec); margin-bottom: 8px; }
+    .exp-bar-outer { position: relative; width: 100%; margin-bottom: 4px; }
+    .exp-bar       { display: flex; width: 100%; height: 32px; border-radius: 4px; overflow: hidden; }
+    .exp-seg { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.65); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 4px; }
+    .exp-seg.under { background: #FFB74D; width: 40%; }
+    .exp-seg.sweet { background: #81C784; width: 35%; }
+    .exp-seg.over  { background: #EF9A9A; width: 25%; }
+    .exp-marker { position: absolute; top: -4px; bottom: -4px; left: 1%; width: 0; border-left: 2px dashed var(--color-navy); pointer-events: none; }
+    .exp-axis { display: flex; justify-content: space-between; padding-top: 6px; font-size: 11px; color: var(--color-sec); }
+    .exp-info { background: #FFF3E0; border: 1px solid #FFB74D; border-radius: 6px; padding: 10px 12px; font-size: 13px; color: #424242; margin-top: 12px; line-height: 1.5; }
+    .salary-sub { font-size: 13px; color: var(--color-sec); margin-bottom: 14px; }
+    .salary-chart-area { position: relative; padding-top: 34px; margin-bottom: 6px; }
+    .salary-tooltip { position: absolute; top: 4px; left: 40%; transform: translateX(-50%); background: #E8F5F4; border: 1px solid #B2DFDB; border-radius: 4px; padding: 2px 8px; font-size: 11px; color: #00796B; font-weight: 500; white-space: nowrap; }
+    .salary-bar-bg { position: relative; width: 100%; height: 8px; background: #E0E0E0; border-radius: 4px; overflow: visible; }
+    .salary-range-fill { position: absolute; top: 0; left: 32%; width: 16%; height: 100%; background: var(--color-teal); opacity: 0.35; border-radius: 4px; }
+    .salary-median-line { position: absolute; left: 40%; top: -26px; bottom: -18px; width: 0; border-left: 2px dashed var(--color-teal); }
+    .salary-axis { position: relative; height: 20px; margin-top: 10px; }
+    .salary-axis span { position: absolute; font-size: 11px; color: var(--color-sec); }
+    .sal-t0  { left: 0%; }
+    .sal-t6  { left: 24%;  transform: translateX(-50%); }
+    .sal-t13 { left: 52%;  transform: translateX(-50%); }
+    .sal-t19 { left: 76%;  transform: translateX(-50%); }
+    .sal-t25 { left: 100%; transform: translateX(-100%); }
+    .salary-stat-row   { display: flex; gap: 8px; margin-top: 18px; }
+    .salary-stat-box   { flex: 1; background: var(--color-bg); border: 1px solid var(--color-div); border-radius: 6px; padding: 10px 12px; }
+    .salary-stat-label { font-size: 11px; color: var(--color-sec); margin-bottom: 4px; }
+    .salary-stat-value { font-size: 15px; font-weight: 700; color: var(--color-text); }
+    .intel-context-bar { background: #EEF2F7; border-left: 4px solid var(--color-teal); padding: 10px 14px; font-size: 12px; color: #424242; line-height: 1.5; border-radius: var(--r-card); margin-bottom: 8px; }
+    .intel-share-card { background: var(--color-navy); border-radius: 12px; padding: 24px; margin: 0 0 8px; }
+    .intel-card-toprow    { display: flex; align-items: center; justify-content: space-between; }
+    .intel-card-forwarded { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--color-teal); text-transform: uppercase; }
+    .intel-card-title     { font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 12px; line-height: 1.3; }
+    .intel-teal-bar       { width: 40px; height: 2px; background: var(--color-teal); margin: 12px 0; }
+    .intel-big-stat { font-size: 64px; font-weight: 800; color: var(--color-teal); line-height: 1; overflow-wrap: break-word; word-break: break-word; }
+    .intel-stat-desc     { font-size: 14px; color: rgba(255,255,255,0.85); margin-top: 8px; line-height: 1.4; }
+    .intel-stat-sub      { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 6px; }
+    .intel-outline-badge { display: inline-block; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 12px; }
+    .intel-inner-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0; }
+    .intel-cta-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--color-teal); color: #FFFFFF; border: none; border-radius: 6px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s ease; }
+    .intel-cta-btn:active { background: #0C8B7A; }
+    .intel-card-credit { text-align: center; font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 12px; }
+    .why-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--color-rowdiv); }
+    .why-row:last-child { border-bottom: none; }
+    .why-icon    { flex-shrink: 0; color: var(--color-teal); margin-top: 1px; }
+    .why-content { flex: 1; }
+    .why-label   { font-size: 14px; font-weight: 600; color: var(--color-text); margin-bottom: 3px; }
+    .why-desc    { font-size: 13px; color: var(--color-sec); line-height: 1.5; }
+    .signal-headline { font-size: 17px; font-weight: 700; color: var(--color-navy); line-height: 1.3; margin: 8px 0; }
+    .signal-subtext  { font-size: 13px; color: var(--color-sec); line-height: 1.55; }
+    .tier-card.tier-green { border-left: 4px solid #2E7D32; }
+    .tier-card.tier-amber { border-left: 4px solid #F9A825; }
+    .tier-card.tier-grey  { border-left: 4px solid #9E9E9E; }
+    .tier-card.tier-blue  { border-left: 4px solid #1565C0; }
+    .tier-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px; }
+    .tier-pill.green { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+    .tier-pill.amber { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
+    .tier-pill.grey  { background: #F5F5F5; color: #757575; border: 1px solid #E0E0E0; }
+    .tier-pill.blue  { background: #E3F2FD; color: #1565C0; border: 1px solid #90CAF9; }
+    .tier-row { padding: 10px 0; }
+    .tier-row + .tier-row { border-top: 1px solid var(--color-rowdiv); }
+    .tier-row-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--color-ter); text-transform: uppercase; margin-bottom: 3px; }
+    .tier-row-value { font-size: 14px; color: var(--color-text); line-height: 1.4; }
+    .tier-row-value.bold { font-weight: 600; color: var(--color-navy); }
+    .tier-example { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-sec); }
+    .hood-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--color-rowdiv); }
+    .hood-row:last-child { border-bottom: none; }
+    .hood-step { width: 24px; height: 24px; border-radius: 50%; background: var(--color-teal); color: #FFFFFF; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .hood-body  { flex: 1; }
+    .hood-label { font-size: 14px; font-weight: 600; color: var(--color-text); margin-bottom: 4px; }
+    .hood-desc  { font-size: 13px; color: var(--color-sec); line-height: 1.5; }
+    .mob-btn-share { display: inline-flex; align-items: center; gap: 6px; background: var(--color-teal); color: #FFFFFF; border: none; border-radius: var(--r-btn); padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .mob-btn-back-intel { display: none; align-items: center; gap: 6px; background: transparent; color: var(--color-teal); border: 1px solid var(--color-teal); border-radius: var(--r-btn); padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .mob-btn-back-signal { display: none; align-items: center; gap: 6px; background: var(--color-teal); color: #FFFFFF; border: none; border-radius: var(--r-btn); padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .mobile-bottom-bar.on-intel  .mob-btn-share       { display: none; }
+    .mobile-bottom-bar.on-intel  .mob-btn-back-intel  { display: inline-flex; }
+    .mobile-bottom-bar.on-signal .mob-btn-share       { display: none; }
+    .mobile-bottom-bar.on-signal .mob-btn-back-signal { display: inline-flex; }
+
+    /* ====== FLIP CARD — fc- namespace ====== */
+    .fc-scene { width: 320px; height: 520px; margin: 0 auto 8px; perspective: 1000px; cursor: pointer; }
+    .fc-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.85s cubic-bezier(.4,0,.2,1); }
+    @media (hover: hover) { .fc-scene:hover .fc-card:not(.flipped) { transform: rotateY(180deg); } }
+    .fc-card.flipped { transform: rotateY(180deg); }
+    .fc-front, .fc-back { position: absolute; inset: 0; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .fc-front { background: #FFFFFF; border: 1px solid #E0E0E0; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .fc-back  { background: #FFFFFF; border: 1px solid #E0E0E0; border-left: 3px solid var(--color-teal); box-shadow: 0 2px 12px rgba(0,0,0,0.08); transform: rotateY(180deg); }
+    .fc-header-row { display: flex; align-items: center; flex-shrink: 0; }
+    .fc-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-teal); flex-shrink: 0; }
+    .fc-header-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #9E9E9E; margin-left: 8px; }
+    .fc-flip-hint { font-size: 10px; color: #BDBDBD; margin-left: auto; display: flex; align-items: center; gap: 4px; }
+    .fc-icon-block { width: 48px; height: 48px; border-radius: 8px; border: 1px solid #E0E0E0; background: #FFFFFF; display: flex; align-items: center; justify-content: center; margin: 20px 0 16px; flex-shrink: 0; }
+    .fc-num-row { display: flex; align-items: flex-end; flex-shrink: 0; }
+    .fc-big-num { font-size: 56px; font-weight: 800; color: var(--color-navy); line-height: 1; }
+    .fc-num-denom { font-size: 26px; font-weight: 600; color: #9E9E9E; margin-left: 4px; padding-bottom: 4px; }
+    .fc-sub-lines { margin-top: 8px; flex-shrink: 0; }
+    .fc-sub-main  { font-size: 13px; color: #757575; line-height: 1.5; }
+    .fc-sub-skill { font-size: 13px; font-weight: 700; color: #212121; }
+    .fc-sub-note  { font-size: 12px; color: #9E9E9E; margin-top: 4px; }
+    .fc-divider { border: none; border-top: 1px solid #E0E0E0; margin: 16px 0; flex-shrink: 0; }
+    .fc-match-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #9E9E9E; text-transform: uppercase; margin-bottom: 8px; flex-shrink: 0; }
+    .fc-badges { display: flex; flex-wrap: wrap; gap: 6px; flex-shrink: 0; min-height: 24px; }
+    .fc-tag-match { display: inline-flex; align-items: center; gap: 4px; background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 600; }
+    .fc-tag-gap   { display: inline-flex; align-items: center; gap: 4px; background: #FFEBEE; color: #C62828; border: 1px solid #EF9A9A; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 600; }
+    .fc-locked-row { background: #F5F5F5; border: 1px solid #E0E0E0; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-shrink: 0; }
+    .fc-lock-icon-box { width: 32px; height: 32px; background: #FFEBEE; border: 1px solid #EF9A9A; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .fc-locked-text-main { font-size: 13px; font-weight: 600; color: #212121; }
+    .fc-locked-text-sub  { font-size: 11px; color: #757575; margin-top: 2px; }
+    .fc-fwd-btn { width: 100%; background: var(--color-teal); color: #FFFFFF; border: none; border-radius: 6px; padding: 13px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.15s ease; font-family: inherit; margin-top: 14px; flex-shrink: 0; }
+    .fc-fwd-btn:hover { filter: brightness(0.92); }
+    .fc-card-footer { font-size: 10px; color: #BDBDBD; text-align: center; margin-top: auto; padding-top: 14px; }
+    .fc-orbit-wrapper { position: relative; width: 88px; height: 88px; margin: 16px auto; flex-shrink: 0; }
+    .fc-avatar { width: 88px; height: 88px; border-radius: 50%; background: var(--color-navy); color: #FFFFFF; font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid var(--color-teal); letter-spacing: -0.5px; position: relative; z-index: 1; }
+    .fc-orbit-dot { position: absolute; top: 50%; left: 50%; border-radius: 50%; background: var(--color-teal); }
+    .fc-orbit-dot.fc-d1 { width: 8px; height: 8px; margin: -4px 0 0 -4px; opacity: 0.7; animation: fc-orbit1 3.5s linear infinite; }
+    .fc-orbit-dot.fc-d2 { width: 6px; height: 6px; margin: -3px 0 0 -3px; opacity: 0.5; animation: fc-orbit2 4.5s linear infinite; }
+    @keyframes fc-orbit1 { 0% { transform: rotate(0deg) translateX(42px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(42px) rotate(-360deg); } }
+    @keyframes fc-orbit2 { 0% { transform: rotate(180deg) translateX(30px) rotate(-180deg); } 100% { transform: rotate(540deg) translateX(30px) rotate(-540deg); } }
+    .fc-scout-name { font-size: 16px; font-weight: 700; color: #212121; text-align: center; flex-shrink: 0; }
+    .fc-scout-tag  { font-size: 10px; color: #9E9E9E; letter-spacing: 0.1em; text-align: center; margin-bottom: 16px; flex-shrink: 0; }
+    .fc-chip-row { display: flex; gap: 8px; flex-shrink: 0; }
+    .fc-chip { flex: 1; background: #F5F5F5; border: 1px solid #E0E0E0; border-radius: 8px; padding: 10px 6px; text-align: center; }
+    .fc-chip-value { font-size: 18px; font-weight: 800; color: var(--color-teal); display: block; }
+    .fc-chip-value.fc-navy { color: var(--color-navy); }
+    .fc-chip-label { font-size: 9px; letter-spacing: 0.1em; color: #9E9E9E; text-transform: uppercase; display: block; margin-top: 4px; }
+    .fc-qr-row { margin-top: 12px; background: #F0FAF8; border: 1px solid #B2DFDB; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 13px; flex-shrink: 0; }
+    .fc-qr-box { width: 54px; height: 54px; position: relative; background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 4px; padding: 3px; flex-shrink: 0; overflow: hidden; }
+    .fc-qr-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; width: 100%; height: 100%; }
+    .fc-qc { border-radius: 1px; background: #E8F5E9; }
+    .fc-qc.fc-on { background: var(--color-teal); }
+    .fc-scan-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--color-teal); opacity: 0.4; animation: fc-scanline 2.2s ease-in-out infinite; }
+    @keyframes fc-scanline { 0% { top: 0%; } 100% { top: 100%; } }
+    .fc-qr-text-main { font-size: 12px; font-weight: 600; color: #212121; }
+    .fc-qr-text-sub  { font-size: 11px; color: #757575; margin-top: 3px; }
+    .fc-open-btn { width: 100%; background: #FFFFFF; border: 1px solid var(--color-teal); border-radius: 6px; padding: 12px; color: var(--color-teal); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 7px; transition: background 0.15s ease; margin-top: 14px; flex-shrink: 0; }
+    .fc-open-btn:hover { background: #F0FAF8; }
+    .fc-back-footer { font-size: 10px; color: #BDBDBD; text-align: center; margin-top: auto; padding-top: 12px; }
+
+    /* ====== RECRUITER VIEW (Screen 4) ====== */
+    .recruiter-strip { background: #EEF2F7; border-left: 4px solid var(--color-teal); padding: 12px 16px; border-radius: var(--r-card); margin-bottom: 8px; }
+    .recruiter-strip-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--color-teal); text-transform: uppercase; }
+    .recruiter-strip-body  { font-size: 13px; color: #424242; margin-top: 4px; }
+    .recruiter-row { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--color-rowdiv); }
+    .recruiter-row:last-child { border-bottom: none; }
+    .recruiter-row-main { display: flex; align-items: center; gap: 12px; }
+    .recruiter-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--color-navy); color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .recruiter-info { flex: 1; min-width: 0; }
+    .recruiter-name { font-size: 14px; font-weight: 600; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .recruiter-meta { font-size: 12px; color: var(--color-ter); margin-top: 2px; }
+    .recruiter-pending-tag { display: inline-block; background: #F0FAF8; border: 1px solid #B2DFDB; color: #00796B; border-radius: 4px; padding: 2px 6px; font-size: 10px; margin-top: 6px; }
+    .recruiter-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .recruiter-btn-pass      { background: #FFFFFF; border: 1px solid var(--color-div); color: var(--color-sec); border-radius: var(--r-btn); padding: 6px 14px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .recruiter-btn-shortlist { background: var(--color-teal); border: none; color: #FFFFFF; border-radius: var(--r-btn); padding: 6px 14px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .recruiter-bottom-note   { font-size: 12px; color: var(--color-ter); text-align: center; padding: 16px; }
+    @media (min-width: 768px) {
+      .recruiter-row { flex-direction: row; align-items: center; }
+      .recruiter-row-main { flex: 1; }
+      .recruiter-actions  { flex-shrink: 0; }
+    }
+    @media (max-width: 479px) {
+      .recruiter-row-main { display: grid; grid-template-columns: 36px 1fr; column-gap: 12px; row-gap: 8px; }
+      .recruiter-row-main .recruiter-avatar { grid-column: 1; grid-row: 1; }
+      .recruiter-row-main .recruiter-info   { grid-column: 2; grid-row: 1; }
+      .recruiter-row-main .badge { grid-column: 1 / -1; justify-self: start; margin-left: 48px; }
+      .recruiter-actions { flex-direction: column; align-items: stretch; }
+      .recruiter-actions button { width: 100%; }
+    }
+
+    /* ====== RECRUITER ECHO ====== */
+    .mob-btn-back-recruiter { display: none; align-items: center; gap: 6px; background: var(--color-teal); color: #FFFFFF; border: none; border-radius: var(--r-btn); padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .mobile-bottom-bar.on-recruiter .mob-btn-share          { display: none; }
+    .mobile-bottom-bar.on-recruiter .mob-btn-back-recruiter { display: inline-flex; }
+    .recruiter-btn-shortlist.echo-confirmed,
+    .recruiter-btn-shortlist.echo-confirmed:hover,
+    .recruiter-btn-shortlist.echo-confirmed:disabled { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; cursor: default; opacity: 1; display: inline-flex; align-items: center; gap: 5px; }
+    .recruiter-pending-tag.echo-confirmed { background: #E8F5E9; border: 1px solid #A5D6A7; color: #2E7D32; display: inline-flex; align-items: center; gap: 4px; }
+    .echo-toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--color-navy); color: #FFFFFF; border-radius: 8px; padding: 14px 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; max-width: 320px; z-index: 200; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; }
+    .echo-toast.echo-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .echo-toast.echo-toast-hide { opacity: 0; transform: translateX(-50%) translateY(16px); }
+    .echo-toast-icon { width: 28px; height: 28px; border-radius: 50%; background: var(--color-teal); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .echo-toast-text-main { font-size: 13px; font-weight: 600; }
+    .echo-toast-text-sub  { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+    @media (min-width: 768px) {
+      .echo-toast { left: auto; right: 24px; bottom: 24px; transform: translateY(16px); }
+      .echo-toast.echo-toast-show { transform: translateY(0); }
+      .echo-toast.echo-toast-hide { transform: translateY(16px); }
+    }
+    @media (min-width: 1025px) { .echo-toast { bottom: 100px; } }
+
+    /* ====== INTERACTIVE — listing switcher + skill toggles ====== */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; font-family: inherit; border: 1px solid var(--color-div); background: #FFFFFF; color: var(--color-sec); cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+    .chip.listing-chip.active { background: var(--color-navy); color: #FFFFFF; border-color: var(--color-navy); }
+    .chip.skill-chip.has { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
+
+    /* ====== LEFT PANEL SCROLLBAR VISIBILITY ====== */
+    .left-panel::-webkit-scrollbar { width: 4px; }
+    .left-panel::-webkit-scrollbar-track { background: transparent; }
+    .left-panel::-webkit-scrollbar-thumb { background: var(--color-div); border-radius: 2px; }
+    .left-panel::-webkit-scrollbar-thumb:hover { background: var(--color-ter); }
+    /* Compact card padding inside left panel */
+    .left-panel .card-pad { padding: 12px 14px; }
+    .left-panel .card-pad.pb12 { padding-bottom: 10px; }
+    .left-panel .listing-title { font-size: 17px; }
+    .left-panel .chip { padding: 5px 11px; font-size: 11px; }
+    .left-panel .exp-info { font-size: 12px; padding: 8px 10px; margin-top: 8px; }
+    .left-panel .salary-stat-box { padding: 8px 10px; }
+    .left-panel .salary-stat-value { font-size: 13px; }
+    .left-panel .salary-stat-label { font-size: 10px; }
+    .left-panel .salary-chart-area { padding-top: 28px; }
+    .left-panel .salary-stat-row { margin-top: 12px; }
+    .corpus-live-row { display: grid; grid-template-columns: minmax(86px,1.3fr) 48px 44px minmax(58px,1fr); gap: 6px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--color-rowdiv); }
+    .corpus-live-row:last-child { border-bottom: none; }
+    .corpus-live-row.head { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ter); padding: 0 16px 8px; border-bottom: 1px solid var(--color-div); }
+    .clr-skill { font-size: 12px; color: var(--color-text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .clr-num   { font-size: 11px; color: var(--color-sec); text-align: right; }
+    .clr-tier  { text-align: right; }
+    .clr-tier-pill { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 9px; font-weight: 700; white-space: nowrap; }
+    .clr-tier-pill.green { background: #E8F5E9; color: #2E7D32; }
+    .clr-tier-pill.amber { background: #FFF8E1; color: #F57F17; }
+    .clr-tier-pill.grey  { background: #F5F5F5; color: #757575; }
+    .clr-tier-pill.blue  { background: #E3F2FD; color: #1565C0; }
+
+    /* ====== BAYESIAN confidence simulation ====== */
+    .bayes-readout { display: flex; gap: 8px; margin-top: 14px; }
+    .bayes-stat-box { flex: 1; background: var(--color-bg); border: 1px solid var(--color-div); border-radius: 6px; padding: 10px 12px; text-align: center; }
+    .bayes-stat-value { font-size: 19px; font-weight: 800; color: var(--color-navy); }
+    .bayes-stat-label { font-size: 10px; color: var(--color-sec); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+    .bayes-ci-bar-outer { position: relative; height: 10px; background: var(--color-rowdiv); border-radius: 5px; margin-top: 16px; }
+    .bayes-ci-bar-fill { position: absolute; top: 0; bottom: 0; background: var(--color-teal); opacity: 0.35; border-radius: 5px; }
+    .bayes-ci-bar-mean { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-navy); }
+    .bayes-slider-wrap { padding: 18px 2px 0; }
+    #n-slider { width: 100%; accent-color: var(--color-teal); }
+    .bayes-slider-ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--color-ter); margin-top: 4px; }
+    .bayes-note { font-size: 12px; color: var(--color-sec); line-height: 1.55; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <div class="demo-banner">
+    APPLYBRIEF DEMO &mdash; INDIA RUNS Ideathon Track 2 &mdash; Computing live against synthetic illustrative corpus. Priya views Velocet SDE 2026, a Redrob-native listing
+  </div>
+  <div class="app-shell">
+    <!-- TOP NAV -->
+    <div class="top-nav">
+      <div class="top-nav-left">ApplyBrief &middot; Redrob Demo</div>
+      <div class="top-nav-right">Decision Intelligence Layer</div>
+    </div>
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div class="card">
+        <div class="card-pad">
+          <div class="section-label">Viewing Listing</div>
+          <div class="chip-row" id="listing-selector"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-pad">
+          <div class="section-label">Match Analysis</div>
+          <div class="listing-title" id="lst-title">Velocet SDE 2026</div>
+          <div class="listing-sub mt4" id="lst-sub">Entry-Level Python Developer &middot; Bangalore</div>
+          <div class="listing-count mt4" id="lst-count">9,277 applicants</div>
+          <hr class="listing-divider">
+          <div class="badge-row" id="lst-badges"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-pad">
+          <div class="section-label">Your Skills</div>
+          <div class="card-subtext mb8">Tap to toggle &mdash; verdict updates live</div>
+          <div class="chip-row" id="skill-toggle-row"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-pad">
+          <div class="exp-header">
+            <div class="section-label no-mb">Experience</div>
+            <span class="badge warn">Underqualified</span>
+          </div>
+          <div class="exp-you">You: ~0 yrs</div>
+          <div class="exp-bar-outer">
+            <div class="exp-bar">
+              <div class="exp-seg under">Underqualified</div>
+              <div class="exp-seg sweet">Sweet Spot</div>
+              <div class="exp-seg over">Overqualified</div>
+            </div>
+            <div class="exp-marker" aria-hidden="true"></div>
+          </div>
+          <div class="exp-axis">
+            <span>0yr</span><span>1yr</span><span>2yr</span><span>3yr</span>
+            <span>4yr</span><span>5yr</span><span>6yr</span><span>7yr</span>
+          </div>
+          <div class="exp-info" id="exp-info">You have less experience than required for this role.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-pad">
+          <div class="section-label">Salary Context</div>
+          <div class="salary-sub" id="salary-sub">Median INR 10 LPA</div>
+          <div class="salary-chart-area">
+            <div class="salary-tooltip" id="salary-tooltip">Market range: INR 8&ndash;12 LPA</div>
+            <div class="salary-bar-bg">
+              <div class="salary-range-fill" id="salary-range-fill"></div>
+              <div class="salary-median-line" id="salary-median-line"></div>
+            </div>
+          </div>
+          <div class="salary-axis">
+            <span class="sal-t0">0</span><span class="sal-t6">6</span>
+            <span class="sal-t13">13</span><span class="sal-t19">19</span><span class="sal-t25">25</span>
+          </div>
+          <div class="salary-stat-row">
+            <div class="salary-stat-box">
+              <div class="salary-stat-label">This role</div>
+              <div class="salary-stat-value" id="salary-this-role">INR 8&ndash;12 LPA</div>
+            </div>
+            <div class="salary-stat-box">
+              <div class="salary-stat-label">Market median</div>
+              <div class="salary-stat-value" id="salary-median">INR 10 LPA</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="left-panel-footer">Powered by ApplyBrief on Redrob</div>
+    </div><!-- /.left-panel -->
+
+    <!-- CENTER PANEL -->
+    <div class="center-panel">
+      <div class="tab-row" role="tablist">
+        <button class="tab-btn active" role="tab" id="tabbtn-triage"     data-tab="triage"     aria-selected="true"  aria-controls="screen-triage"     onclick="switchTab('triage')">Decision Triage</button>
+        <button class="tab-btn"        role="tab" id="tabbtn-intel-card" data-tab="intel-card" aria-selected="false" aria-controls="screen-intel-card" onclick="switchTab('intel-card')">Intel Card</button>
+        <button class="tab-btn"        role="tab" id="tabbtn-signal"     data-tab="signal"     aria-selected="false" aria-controls="screen-signal"     onclick="switchTab('signal')">Signal Quality</button>
+        <button class="tab-btn"        role="tab" id="tabbtn-recruiter"  data-tab="recruiter"  aria-selected="false" aria-controls="screen-recruiter"  onclick="switchTab('recruiter')">Recruiter View</button>
+      </div>
+      <div class="screen-content">
+
+        <!-- SCREEN 1: DECISION TRIAGE -->
+        <section id="screen-triage" class="screen active" role="tabpanel" aria-labelledby="tabbtn-triage">
+          <div class="verdict-card-mobile">
+            <div class="card card--teal-left">
+              <div class="card-pad">
+                <div class="verdict-label">ApplyBrief Verdict</div>
+                <div class="verdict-headline js-verdict-headline">Apply &mdash; but close this gap first.</div>
+                <div class="verdict-body js-verdict-body">Python, SQL, and Java match the JD. Cloud Deployment is flagged in 6 of 8 similar SDE listings this month (illustrative &mdash; 76% of the 50-JD corpus) &mdash; a JD-text proxy for what recruiters weight, not yet validated against confirmed outcomes.</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-pad pb12">
+                <div class="section-label">Skills Breakdown</div>
+                <div class="card-subtext">Skills profile vs. Job requirements</div>
+              </div>
+              <hr class="divider">
+              <div class="js-skills-rows"></div>
+              <div class="gap-detail js-gap-detail">
+                <div class="gap-signal js-gap-signal-text">COMMON REQUIREMENT &mdash; 6 of 8 similar listings</div>
+                <div class="gap-validation js-gap-validation-text">JD-text proxy signal &middot; PMI-ranked &middot; 50-JD corpus &middot; Outcome validation via Recruiter Echo</div>
+                <div class="gap-action">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--color-teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h8M6 2l4 4-4 4"/></svg>
+                  <span class="js-gap-action-text">Recommended path: AWS Cloud Practitioner &mdash; free 8hr course on Coursera</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 2: INTEL CARD -->
+        <section id="screen-intel-card" class="screen" role="tabpanel" aria-labelledby="tabbtn-intel-card">
+          <div class="intel-context-bar">Generated every session &mdash; shareable whether shortlisted or not</div>
+          <div class="fc-scene">
+            <div class="fc-card">
+              <!-- FRONT FACE -->
+              <div class="fc-front">
+                <div class="fc-header-row">
+                  <div class="fc-dot" aria-hidden="true"></div>
+                  <span class="fc-header-label">JOB INTEL &middot; REDROB</span>
+                  <span class="fc-flip-hint">
+                    hover to flip
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  </span>
+                </div>
+                <div class="fc-icon-block" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </div>
+                <div class="fc-num-row">
+                  <span class="fc-big-num" id="fc-stat-num">6</span>
+                  <span class="fc-num-denom" id="fc-stat-denom">/8</span>
+                </div>
+                <div class="fc-sub-lines">
+                  <div class="fc-sub-main" id="fc-stat-desc">similar SDE listings this month require</div>
+                  <div class="fc-sub-skill" id="fc-stat-skill">Cloud Deployment</div>
+                  <div class="fc-sub-note" id="fc-stat-note">not on most fresher resumes yet</div>
+                </div>
+                <hr class="fc-divider">
+                <div class="fc-match-label" id="fc-match-label">Your Match &middot; Velocet SDE 2026</div>
+                <div class="fc-badges" id="fc-badges-container"></div>
+                <div id="fc-locked-section">
+                  <div class="fc-locked-row">
+                    <div class="fc-lock-icon-box">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <div>
+                      <div class="fc-locked-text-main">The blocking skill is hidden</div>
+                      <div class="fc-locked-text-sub">Forward to group &mdash; reveals instantly</div>
+                    </div>
+                  </div>
+                  <button class="fc-fwd-btn" type="button" onclick="event.stopPropagation(); revealGapCard()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    Forward to reveal gap
+                  </button>
+                </div>
+                <div class="fc-card-footer">redrob.com &middot; shared via ApplyBrief</div>
+              </div><!-- /.fc-front -->
+
+              <!-- BACK FACE -->
+              <div class="fc-back">
+                <div class="fc-header-row">
+                  <div class="fc-dot" aria-hidden="true"></div>
+                  <span class="fc-header-label">SCOUT PROFILE</span>
+                  <span class="fc-flip-hint">leave to flip back</span>
+                </div>
+                <div class="fc-orbit-wrapper">
+                  <div class="fc-avatar">MK</div>
+                  <div class="fc-orbit-dot fc-d1" aria-hidden="true"></div>
+                  <div class="fc-orbit-dot fc-d2" aria-hidden="true"></div>
+                </div>
+                <div class="fc-scout-name">Monish K.</div>
+                <div class="fc-scout-tag">Velammal Engineering &middot; ECE &middot; 2027</div>
+                <hr class="fc-divider">
+                <div class="fc-chip-row">
+                  <div class="fc-chip"><span class="fc-chip-value">14</span><span class="fc-chip-label">Shared</span></div>
+                  <div class="fc-chip"><span class="fc-chip-value fc-navy">3</span><span class="fc-chip-label">Interviews</span></div>
+                  <div class="fc-chip"><span class="fc-chip-value">82%</span><span class="fc-chip-label">Match</span></div>
+                </div>
+                <div class="fc-qr-row">
+                  <div class="fc-qr-box">
+                    <div id="fc-qr-grid" class="fc-qr-grid"></div>
+                    <div class="fc-scan-line" aria-hidden="true"></div>
+                  </div>
+                  <div>
+                    <div class="fc-qr-text-main">Scan to open in Redrob</div>
+                    <div class="fc-qr-text-sub">See your full match breakdown</div>
+                  </div>
+                </div>
+                <button class="fc-open-btn" type="button" onclick="event.stopPropagation(); showDemoToast('Redrob integration not wired in this prototype — live build in progress.')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  Open in Redrob
+                </button>
+                <div class="fc-back-footer">Forwarded by Monish &middot; redrob.com/applybrief</div>
+              </div><!-- /.fc-back -->
+            </div><!-- /.fc-card -->
+          </div><!-- /.fc-scene -->
+
+          <div class="card">
+            <div class="card-pad pb12"><div class="section-label teal">Why This Card Travels</div></div>
+            <hr class="divider">
+            <div class="why-row">
+              <div class="why-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 11V4"/><path d="M5 7l3-3 3 3"/><path d="M3 13h10"/></svg></div>
+              <div class="why-content"><div class="why-label">Fires every session</div><div class="why-desc">Generated on every Triage view &mdash; not just when you&rsquo;re shortlisted</div></div>
+            </div>
+            <div class="why-row">
+              <div class="why-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="10" height="6.5" rx="1.5"/><path d="M5.5 7.5V5.5a2.5 2.5 0 015 0v2"/></svg></div>
+              <div class="why-content"><div class="why-label">Triage stays private</div><div class="why-desc">The Triage verdict is yours alone. The Intel Card is the only output that leaves the app.</div></div>
+            </div>
+            <div class="why-row">
+              <div class="why-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="1.5" width="7" height="13" rx="2"/><path d="M7 12h2"/></svg></div>
+              <div class="why-content"><div class="why-label">WhatsApp preview renders</div><div class="why-desc">Dynamic OG tags serve the &lsquo;6 of 8&rsquo; stat as a rich card. No grey box &mdash; the stat is visible before the recipient even taps.</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 3: SIGNAL QUALITY -->
+        <section id="screen-signal" class="screen" role="tabpanel" aria-labelledby="tabbtn-signal">
+          <div class="card">
+            <div class="card-pad">
+              <div class="section-label teal">How ApplyBrief Validates Signals</div>
+              <div class="signal-headline">Not all gaps are equal. We tell you how much to trust each one.</div>
+              <div class="signal-subtext">Redrob&rsquo;s Match Analysis is the input. ApplyBrief adds a confidence layer before any gap reaches you.</div>
+            </div>
+          </div>
+          <div id="tier-cards-container"></div>
+          <div class="card">
+            <div class="card-pad pb12">
+              <div class="section-label teal">Full Corpus &mdash; Live Computation</div>
+              <div class="card-subtext">Every tracked skill, sorted by PMI. Recomputes when you switch listings or toggle skills.</div>
+            </div>
+            <div class="corpus-live-row head">
+              <span>Skill</span><span class="clr-num">% Fresher</span><span class="clr-num">PMI</span><span class="clr-tier">Tier</span>
+            </div>
+            <div id="corpus-table-body"></div>
+          </div>
+          <div class="card">
+            <div class="card-pad pb12"><div class="section-label teal">Under the Hood</div></div>
+            <hr class="divider">
+            <div class="hood-row">
+              <div class="hood-step">1</div>
+              <div class="hood-body"><div class="hood-label">PMI Weighting</div><div class="hood-desc">Eliminates boilerplate skills that appear everywhere (e.g. &lsquo;communication skills&rsquo;). Only statistically significant co-occurrences surface.</div></div>
+            </div>
+            <div class="hood-row">
+              <div class="hood-step">2</div>
+              <div class="hood-body"><div class="hood-label">Corpus-Size Gate</div><div class="hood-desc">A skill must appear in 50 or more JDs for your role-seniority tier before it becomes a signal. No single-listing noise.</div></div>
+            </div>
+            <div class="hood-row">
+              <div class="hood-step">3</div>
+              <div class="hood-body"><div class="hood-label">Prevalence Floor</div><div class="hood-desc">A high PMI score on a skill mentioned in only one or two JDs is noise, not signal &mdash; so anything under 10% prevalence is held back as &lsquo;Insufficient Data&rsquo; regardless of its PMI score.</div></div>
+            </div>
+            <div class="hood-row">
+              <div class="hood-step">4</div>
+              <div class="hood-body"><div class="hood-label">Seniority Segmentation</div><div class="hood-desc">Fresher SDE signals are separate from Senior SDE signals. You see the right tier, not a mixed corpus.</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-pad">
+              <div class="section-label teal">Confidence Grows With Evidence</div>
+              <div class="signal-subtext mb12">A Bayesian credible interval for the true prevalence of the headline gap, given how many recruiter outcomes have been confirmed via Recruiter Echo.</div>
+              <div class="bayes-readout">
+                <div class="bayes-stat-box"><div class="bayes-stat-value" id="bayes-mean">&mdash;</div><div class="bayes-stat-label">Estimate</div></div>
+                <div class="bayes-stat-box"><div class="bayes-stat-value" id="bayes-width">&mdash;</div><div class="bayes-stat-label">90% CI Width</div></div>
+              </div>
+              <div class="bayes-ci-bar-outer">
+                <div class="bayes-ci-bar-fill" id="bayes-ci-fill"></div>
+                <div class="bayes-ci-bar-mean" id="bayes-ci-mean"></div>
+              </div>
+              <div class="bayes-slider-wrap">
+                <input type="range" id="n-slider" min="0" max="5" step="1" value="0">
+                <div class="bayes-slider-ticks"><span>0</span><span>10</span><span>50</span><span>150</span><span>400</span><span>1000</span></div>
+              </div>
+              <div class="bayes-note" id="bayes-note">
+                With 0 confirmed outcomes, the credible interval is wide &mdash; the prior is doing most of the work. As Recruiter Echo confirms outcomes (Recruiter View &rarr; Priya&rsquo;s row), the interval narrows. Drag the slider to see it live.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 4: RECRUITER VIEW -->
+        <section id="screen-recruiter" class="screen" role="tabpanel" aria-labelledby="tabbtn-recruiter">
+          <div class="recruiter-strip">
+            <div class="recruiter-strip-label">Decision Triage Active for This Listing</div>
+            <div class="recruiter-strip-body">1 critical gap flagged for 34% of applicants &mdash; Cloud Deployment</div>
+          </div>
+          <div class="card">
+            <div class="card-pad">
+              <div class="listing-title" id="rec-title">Velocet SDE 2026</div>
+              <div class="listing-sub mt4" id="rec-sub">Entry-Level Python Developer &middot; Bangalore</div>
+              <div class="listing-count mt4" id="rec-count">9,277 applicants &middot; 247 in this inbox view</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-pad pb12">
+              <div class="section-label">Applicant Inbox</div>
+              <div class="card-subtext">Existing Redrob inbox &mdash; ApplyBrief match badge shown inline, nothing else changes</div>
+            </div>
+            <hr class="divider">
+            <div class="recruiter-row">
+              <div class="recruiter-row-main">
+                <div class="recruiter-avatar">PS</div>
+                <div class="recruiter-info">
+                  <div class="recruiter-name">Priya S.</div>
+                  <div class="recruiter-meta">B.E. ECE &middot; 0 yrs exp</div>
+                  <div class="recruiter-pending-tag" id="priya-pending-tag">Self-reported outcome pending confirmation</div>
+                </div>
+                <span class="badge match">High Match</span>
+              </div>
+              <div class="recruiter-actions">
+                <button class="recruiter-btn-pass" type="button">Pass</button>
+                <button class="recruiter-btn-shortlist" id="priya-shortlist-btn" type="button" onclick="confirmRecruiterEcho()">Shortlist</button>
+              </div>
+            </div>
+            <div class="recruiter-row">
+              <div class="recruiter-row-main"><div class="recruiter-avatar">AM</div><div class="recruiter-info"><div class="recruiter-name">Arjun M.</div><div class="recruiter-meta">B.Tech CSE &middot; 0 yrs exp</div></div><span class="badge warn">Medium Match</span></div>
+              <div class="recruiter-actions"><button class="recruiter-btn-pass" type="button">Pass</button><button class="recruiter-btn-shortlist" type="button">Shortlist</button></div>
+            </div>
+            <div class="recruiter-row">
+              <div class="recruiter-row-main"><div class="recruiter-avatar">SR</div><div class="recruiter-info"><div class="recruiter-name">Sneha R.</div><div class="recruiter-meta">B.E. ECE &middot; 0 yrs exp</div></div><span class="badge warn">Medium Match</span></div>
+              <div class="recruiter-actions"><button class="recruiter-btn-pass" type="button">Pass</button><button class="recruiter-btn-shortlist" type="button">Shortlist</button></div>
+            </div>
+            <div class="recruiter-row">
+              <div class="recruiter-row-main"><div class="recruiter-avatar">KV</div><div class="recruiter-info"><div class="recruiter-name">Karthik V.</div><div class="recruiter-meta">B.Tech IT &middot; 1 yr exp</div></div><span class="badge gap">Low Match</span></div>
+              <div class="recruiter-actions"><button class="recruiter-btn-pass" type="button">Pass</button><button class="recruiter-btn-shortlist" type="button">Shortlist</button></div>
+            </div>
+            <div class="recruiter-row">
+              <div class="recruiter-row-main"><div class="recruiter-avatar">DN</div><div class="recruiter-info"><div class="recruiter-name">Divya N.</div><div class="recruiter-meta">B.E. ECE &middot; 0 yrs exp</div></div><span class="badge match">High Match</span></div>
+              <div class="recruiter-actions"><button class="recruiter-btn-pass" type="button">Pass</button><button class="recruiter-btn-shortlist" type="button">Shortlist</button></div>
+            </div>
+            <div class="recruiter-row">
+              <div class="recruiter-row-main"><div class="recruiter-avatar">RK</div><div class="recruiter-info"><div class="recruiter-name">Rahul K.</div><div class="recruiter-meta">B.Tech CSE &middot; 0 yrs exp</div></div><span class="badge warn">Medium Match</span></div>
+              <div class="recruiter-actions"><button class="recruiter-btn-pass" type="button">Pass</button><button class="recruiter-btn-shortlist" type="button">Shortlist</button></div>
+            </div>
+          </div>
+          <div class="recruiter-bottom-note">This is Redrob&rsquo;s existing applicant inbox. The match badge is the only new element &mdash; Pass and Shortlist already exist.</div>
+        </section>
+
+        <div class="screen-footer">ApplyBrief &middot; INDIA RUNS Ideathon &middot; Track 2 &middot; Team ApplyBrief</div>
+      </div><!-- /.screen-content -->
+    </div><!-- /.center-panel -->
+
+    <!-- RIGHT PANEL (desktop only) — persistent decision context visible across all tabs -->
+    <div class="right-panel">
+      <div class="right-panel-content">
+        <div class="section-label teal" style="margin-bottom:10px">Decision Context</div>
+        <div class="card card--teal-left">
+          <div class="card-pad" style="padding:12px 14px">
+            <div class="verdict-label">ApplyBrief Verdict</div>
+            <div class="verdict-headline js-verdict-headline" style="font-size:15px;margin-bottom:6px">Apply &mdash; but close this gap first.</div>
+            <div class="verdict-body js-verdict-body" style="font-size:12px;line-height:1.55;color:#616161">Python, SQL, and Java match the JD. Cloud Deployment is flagged in 6 of 8 similar SDE listings this month &mdash; a JD-text proxy signal.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-pad pb12" style="padding:12px 14px 10px">
+            <div class="section-label" style="margin-bottom:4px">Skill Status</div>
+            <div class="card-subtext" style="font-size:11px">vs. current listing requirements</div>
+          </div>
+          <hr class="divider">
+          <div class="js-skills-rows" id="right-skills-rows"></div>
+          <div class="gap-detail js-gap-detail" style="margin:4px 12px 12px">
+            <div class="gap-signal js-gap-signal-text" style="font-size:11px">COMMON REQUIREMENT &mdash; 6 of 8 similar listings</div>
+            <div class="gap-validation js-gap-validation-text" style="font-size:11px;margin-bottom:6px">JD-text proxy &middot; PMI-ranked &middot; 50-JD corpus</div>
+            <div class="gap-action" style="font-size:11px">
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="var(--color-teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h8M6 2l4 4-4 4"/></svg>
+              <span class="js-gap-action-text">Recommended: AWS Cloud Practitioner &mdash; free on Coursera</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:#EEF2F7;border-radius:6px;padding:10px 12px;font-size:11px;color:#424242;line-height:1.55;margin-top:2px">
+          <span style="font-weight:700;color:var(--color-teal)">Tip:</span> Toggle your skills in the left panel to see the verdict update live.
+        </div>
+      </div>
+      <div class="right-panel-cta">
+        <button onclick="switchTab('intel-card')">
+          Share Intel Card
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h10M7 2l5 5-5 5"/></svg>
+        </button>
+      </div>
+    </div><!-- /.right-panel -->
+  </div><!-- /.app-shell -->
+
+  <!-- MOBILE BOTTOM BAR -->
+  <div class="mobile-bottom-bar">
+    <span class="mobile-bottom-bar-label">Powered by ApplyBrief on Redrob</span>
+    <button class="mob-btn-share" onclick="switchTab('intel-card')">
+      Share Intel Card
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h10M7 2l5 5-5 5"/></svg>
+    </button>
+    <button class="mob-btn-back-intel" onclick="switchTab('triage')">Back to Triage</button>
+    <button class="mob-btn-back-signal" onclick="switchTab('triage')">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7H2M7 12l-5-5 5-5"/></svg>
+      Back to Triage
+    </button>
+    <button class="mob-btn-back-recruiter" onclick="switchTab('triage')">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7H2M7 12l-5-5 5-5"/></svg>
+      Back to Triage
+    </button>
+  </div>
+
+  <script>
+    /* ============================================================
+       SHELL HEIGHT
+    ============================================================ */
+    function updateShellHeight() {
+      const banner = document.querySelector('.demo-banner');
+      const shell  = document.querySelector('.app-shell');
+      if (!banner || !shell) return;
+      if (window.innerWidth >= 768) {
+        shell.style.height = 'calc(100vh - ' + banner.getBoundingClientRect().height + 'px)';
+      } else {
+        shell.style.height = '';
+      }
+    }
+
+    /* ============================================================
+       TAB SWITCHING
+    ============================================================ */
+    function switchTab(tabId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      const scr = document.getElementById('screen-' + tabId);
+      if (scr) scr.classList.add('active');
+      const btn = document.querySelector('[data-tab="' + tabId + '"]');
+      if (btn) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+      }
+      window.scrollTo(0, 0);
+      const center = document.querySelector('.center-panel');
+      if (center) center.scrollTop = 0;
+      const mbar = document.querySelector('.mobile-bottom-bar');
+      if (mbar) {
+        mbar.classList.remove('on-intel', 'on-signal', 'on-recruiter');
+        if (tabId === 'intel-card') mbar.classList.add('on-intel');
+        else if (tabId === 'signal')  mbar.classList.add('on-signal');
+        else if (tabId === 'recruiter') mbar.classList.add('on-recruiter');
+      }
+    }
+
+    /* ============================================================
+       RECRUITER ECHO — Priya only, fires once, nudges Bayes slider
+    ============================================================ */
+    function confirmRecruiterEcho() {
+      const btn = document.getElementById('priya-shortlist-btn');
+      if (!btn || btn.disabled) return;
+
+      const checkSmall = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+      const checkBtn   = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+      const checkToast = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+
+      btn.disabled = true;
+      btn.classList.add('echo-confirmed');
+      btn.innerHTML = checkBtn + 'Shortlisted';
+
+      const tag = document.getElementById('priya-pending-tag');
+      if (tag) {
+        tag.classList.add('echo-confirmed');
+        tag.innerHTML = checkSmall + 'Outcome confirmed via Recruiter Echo';
+      }
+
+      const toast = document.createElement('div');
+      toast.className = 'echo-toast';
+      toast.innerHTML =
+        '<div class="echo-toast-icon">' + checkToast + '</div>' +
+        '<div><div class="echo-toast-text-main">Recruiter Echo logged</div>' +
+        '<div class="echo-toast-text-sub">Priya&rsquo;s self-reported outcome &mdash; confirmed</div></div>';
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('echo-toast-show')));
+      setTimeout(() => {
+        toast.classList.remove('echo-toast-show');
+        toast.classList.add('echo-toast-hide');
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+      }, 3500);
+
+      // Nudge Bayesian slider +1 step
+      const slider = document.getElementById('n-slider');
+      if (slider) {
+        slider.value = String(Math.min(parseInt(slider.value) + 1, parseInt(slider.max)));
+        renderBayes();
+      }
+    }
+
+    /* ============================================================
+       QR GRID INIT
+    ============================================================ */
+    document.addEventListener('DOMContentLoaded', () => {
+      const qrPattern = [
+        1,1,1,0,0,1,1,
+        1,0,0,0,1,0,1,
+        1,1,1,0,0,0,0,
+        0,0,1,0,1,1,0,
+        1,1,0,0,1,1,1,
+        1,0,0,0,0,0,1,
+        1,1,1,0,1,0,1
+      ];
+      const grid = document.getElementById('fc-qr-grid');
+      if (grid) {
+        qrPattern.forEach(v => {
+          const cell = document.createElement('div');
+          cell.className = 'fc-qc' + (v ? ' fc-on' : '');
+          grid.appendChild(cell);
+        });
+      }
+    });
+
+    /* ============================================================
+       ===========  DECISION INTELLIGENCE ENGINE  ===============
+       Illustrative corpus for demo purposes.
+       PMI formula: log2(P(skill|fresher) / P(skill|general))
+    ============================================================ */
+
+    const CORPUS = {
+      fresherTotal: 50,
+      generalTotal: 400,
+      skills: {
+        'Communication Skills': { fresher: 49, general: 392 },
+        'Data Structures':      { fresher: 41, general: 90  },
+        'Python':               { fresher: 44, general: 140 },
+        'SQL':                  { fresher: 38, general: 120 },
+        'Java':                 { fresher: 33, general: 110 },
+        'Cloud Deployment':     { fresher: 38, general: 60  },
+        'Rust':                 { fresher: 19, general: 12  },
+        'Quantum Computing':    { fresher: 1,  general: 2   }
+      }
+    };
+
+    const SKILL_RESOURCES = {
+      'Cloud Deployment':     'AWS Cloud Practitioner &mdash; free 8hr course on Coursera',
+      'Rust':                 'The Rust Book &mdash; free, official, ~12hr read-through',
+      'Data Structures':      'NeetCode 150 &mdash; free structured practice set',
+      'Communication Skills': 'Toastmasters Pathways &mdash; free intro module',
+      'SQL':                  'Mode SQL Tutorial &mdash; free, interactive',
+      'Python':               'CS50P (Harvard) &mdash; free, edX',
+      'Java':                 'Java Programming MOOC (Helsinki) &mdash; free',
+      'Quantum Computing':    'IBM Quantum Learning &mdash; free, official'
+    };
+
+    const LISTINGS = {
+      velocet: {
+        id: 'velocet',
+        title: 'Velocet SDE 2026',
+        role: 'Entry-Level Python Developer',
+        location: 'Bangalore',
+        applicants: '9,277',
+        required: ['Python','SQL','Java','Cloud Deployment','Data Structures','Communication Skills'],
+        salaryLo: 8, salaryHi: 12, salaryMedian: 10, axisMax: 25
+      },
+      tcs: {
+        id: 'tcs',
+        title: 'TCS Digital',
+        role: 'Associate Software Engineer',
+        location: 'Bangalore',
+        applicants: '6,140',
+        required: ['Python','Data Structures','SQL','Rust','Communication Skills'],
+        salaryLo: 4.5, salaryHi: 7, salaryMedian: 5.8, axisMax: 25
+      }
+    };
+
+    const state = {
+      listingId: 'velocet',
+      candidateSkills: new Set(['Python','SQL','Java','Data Structures','Communication Skills'])
+    };
+
+    /* ---- PMI + tier classification ---- */
+    function prevalence(skill) {
+      const c = CORPUS.skills[skill];
+      return c ? c.fresher / CORPUS.fresherTotal : 0;
+    }
+    function pmi(skill) {
+      const c = CORPUS.skills[skill];
+      if (!c) return 0;
+      const pF = c.fresher / CORPUS.fresherTotal;
+      const pG = c.general / CORPUS.generalTotal;
+      return (pG > 0 && pF > 0) ? Math.log2(pF / pG) : 0;
+    }
+    function fractionOf8(skill) {
+      return Math.max(0, Math.min(8, Math.round(prevalence(skill) * 8)));
+    }
+    function classifyTier(skill) {
+      const prev = prevalence(skill);
+      const score = pmi(skill);
+      if (prev < 0.10) return { key:'insufficient', label:'Insufficient Data',    cls:'blue',  verdict:'Too rare in this corpus to score reliably — verify manually' };
+      if (score >= 2.0 && prev >= 0.70) return { key:'high',     label:'High JD-Text Signal',  cls:'green', verdict:'Strongly overrepresented in this tier’s JDs — a high-priority gap to close' };
+      if (score >= 1.0)                  return { key:'building', label:'Building Signal',       cls:'amber', verdict:'Overrepresented vs. general corpus — worth closing before applying' };
+      return                                    { key:'low',      label:'Low Signal',            cls:'grey',  verdict:'Common across all JDs — not a differentiating gap' };
+    }
+    function currentListing() { return LISTINGS[state.listingId]; }
+    function getGaps() { return currentListing().required.filter(s => !state.candidateSkills.has(s)); }
+    function headlineGap() {
+      const gaps = getGaps();
+      if (!gaps.length) return null;
+      return gaps.reduce((best, s) => pmi(s) > pmi(best) ? s : best, gaps[0]);
+    }
+    function criticalGapCount() {
+      return getGaps().filter(s => { const t = classifyTier(s); return t.key === 'high' || t.key === 'building'; }).length;
+    }
+
+    /* ---- Listing selector ---- */
+    function renderListingSelector() {
+      const el = document.getElementById('listing-selector');
+      el.innerHTML = '';
+      Object.keys(LISTINGS).forEach(id => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip listing-chip' + (state.listingId === id ? ' active' : '');
+        btn.textContent = LISTINGS[id].title;
+        btn.onclick = () => { state.listingId = id; renderAll(); };
+        el.appendChild(btn);
+      });
+    }
+
+    /* ---- Skill toggles ---- */
+    function renderSkillToggles() {
+      const el = document.getElementById('skill-toggle-row');
+      el.innerHTML = '';
+      const checkSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+      Object.keys(CORPUS.skills).forEach(skill => {
+        const has = state.candidateSkills.has(skill);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip skill-chip' + (has ? ' has' : '');
+        btn.innerHTML = (has ? checkSvg : '') + skill;
+        btn.onclick = () => {
+          state.candidateSkills.has(skill) ? state.candidateSkills.delete(skill) : state.candidateSkills.add(skill);
+          renderAll();
+        };
+        el.appendChild(btn);
+      });
+    }
+
+    /* ---- Listing header card ---- */
+    function renderListingCard() {
+      const l = currentListing();
+      const subText  = l.role + ' · ' + l.location;
+      const cntText  = l.applicants + ' applicants';
+      // Match Analysis card
+      document.getElementById('lst-title').textContent = l.title;
+      document.getElementById('lst-sub').textContent   = subText;
+      document.getElementById('lst-count').textContent = cntText;
+      // Recruiter View card — same data, was previously a dead hardcode
+      document.getElementById('rec-title').textContent = l.title;
+      document.getElementById('rec-sub').textContent   = subText;
+      document.getElementById('rec-count').textContent = cntText + ' · 247 in this inbox view';
+      const gaps = getGaps();
+      const matchPct = Math.round(((l.required.length - gaps.length) / l.required.length) * 100);
+      let mLabel, mClass;
+      if (matchPct === 100) { mLabel = 'STRONG MATCH'; mClass = 'badge match'; }
+      else if (matchPct >= 60) { mLabel = 'MEDIUM MATCH'; mClass = 'badge warn'; }
+      else { mLabel = 'LOW MATCH'; mClass = 'badge gap'; }
+      const bel = document.getElementById('lst-badges');
+      bel.innerHTML = '';
+      const b1 = document.createElement('span'); b1.className = mClass; b1.textContent = mLabel; bel.appendChild(b1);
+      if (gaps.length) {
+        const b2 = document.createElement('span'); b2.className = 'badge gap';
+        b2.textContent = criticalGapCount() + (criticalGapCount() === 1 ? ' CRITICAL GAP' : ' CRITICAL GAPS'); bel.appendChild(b2);
+      }
+    }
+
+    /* ---- Verdict (shared .js-* selectors hit both mobile + desktop copies) ---- */
+    function renderVerdict() {
+      const l = currentListing();
+      const gaps = getGaps();
+      const matched = l.required.filter(s => state.candidateSkills.has(s));
+      let headline, body;
+      if (!gaps.length) {
+        headline = 'Apply with confidence — full skills match.';
+        body = matched.join(', ') + ' all match the JD. No flagged gaps for this listing right now.';
+      } else {
+        const gap = headlineGap();
+        const tier = classifyTier(gap);
+        headline = 'Apply — but close this gap first.';
+        body = matched.join(', ') + ' match the JD. ' + gap + ' is flagged in ' + fractionOf8(gap) +
+               ' of 8 similar listings this month (illustrative — ' + Math.round(prevalence(gap)*100) + '% of 50-JD corpus). ' +
+               tier.verdict + '. JD-text proxy — outcome validation via Recruiter Echo.';
+      }
+      document.querySelectorAll('.js-verdict-headline').forEach(el => el.textContent = headline);
+      document.querySelectorAll('.js-verdict-body').forEach(el => el.textContent = body);
+    }
+
+    /* ---- Skills breakdown + gap detail ---- */
+    function renderSkillsBreakdown() {
+      const l = currentListing();
+      const rowsHtml = l.required.map(skill => {
+        const has = state.candidateSkills.has(skill);
+        return '<div class="skill-row' + (has ? '' : ' wrap') + '">' +
+          '<span class="skill-name">' + skill + '</span>' +
+          (has ? '<span class="badge match">Match</span><span class="skill-desc">Core requirement</span>' : '<span class="badge gap">Gap</span>') +
+          '</div>';
+      }).join('');
+      document.querySelectorAll('.js-skills-rows').forEach(el => el.innerHTML = rowsHtml);
+
+      const gapEls = document.querySelectorAll('.js-gap-detail');
+      const gaps = getGaps();
+      if (!gaps.length) {
+        gapEls.forEach(el => el.style.display = 'none');
+      } else {
+        const gap = headlineGap();
+        const tier = classifyTier(gap);
+        const resource = SKILL_RESOURCES[gap] || 'Search for a free intro course on this skill';
+        gapEls.forEach(el => {
+          el.style.display = '';
+          el.querySelector('.js-gap-signal-text').innerHTML =
+            tier.label.toUpperCase() + ' &mdash; ' + fractionOf8(gap) + ' of 8 similar listings';
+          el.querySelector('.js-gap-validation-text').textContent =
+            'PMI ' + pmi(gap).toFixed(2) + ' bits · ' + Math.round(prevalence(gap)*100) + '% prevalence · Fresher SDE tier';
+          el.querySelector('.js-gap-action-text').innerHTML = 'Recommended path: ' + resource;
+        });
+      }
+    }
+
+    /* ---- Experience + salary (left panel only) ---- */
+    function renderExperienceSalary() {
+      const l = currentListing();
+      document.getElementById('exp-info').textContent = 'You have less experience than required for ' + l.title + '.';
+      document.getElementById('salary-sub').textContent = 'Median INR ' + l.salaryMedian + ' LPA';
+      const tooltipEl = document.getElementById('salary-tooltip');
+      tooltipEl.textContent = 'INR ' + l.salaryLo + '\u2013' + l.salaryHi + ' LPA';
+      document.getElementById('salary-this-role').textContent = 'INR ' + l.salaryLo + '\u2013' + l.salaryHi + ' LPA';
+      document.getElementById('salary-median').textContent = 'INR ' + l.salaryMedian + ' LPA';
+      const leftPct   = (l.salaryLo / l.axisMax) * 100;
+      const widthPct  = ((l.salaryHi - l.salaryLo) / l.axisMax) * 100;
+      const medianPct = (l.salaryMedian / l.axisMax) * 100;
+      const fill = document.getElementById('salary-range-fill');
+      fill.style.left = leftPct + '%'; fill.style.width = widthPct + '%';
+      document.getElementById('salary-median-line').style.left = medianPct + '%';
+      // Clamp tooltip: prevent left-overflow when median is near the left edge
+      tooltipEl.style.left = medianPct + '%';
+      tooltipEl.style.transform = medianPct < 38 ? 'translateX(0)' : medianPct > 72 ? 'translateX(-100%)' : 'translateX(-50%)';
+    }
+
+    /* ---- Intel Card flip (click/tap toggle) ---- */
+    (function initFlipCard() {
+      const scene = document.querySelector('.fc-scene');
+      if (!scene) return;
+      const card  = scene.querySelector('.fc-card');
+      scene.addEventListener('click', function() {
+        card.classList.toggle('flipped');
+      });
+      // Update hint text on touch devices
+      if (window.matchMedia('(hover: none)').matches) {
+        const hints = scene.querySelectorAll('.fc-flip-hint');
+        if (hints[0]) hints[0].firstChild.textContent = 'tap to flip ';
+        if (hints[1]) hints[1].firstChild.textContent = 'tap to flip back ';
+      }
+    })();
+
+    /* ---- Forward-to-reveal: flip to back and unlock gap ---- */
+    function revealGapCard() {
+      const card = document.querySelector('.fc-card');
+      if (!card) return;
+      const locked = document.getElementById('fc-locked-section');
+      const gap = headlineGap();
+      if (gap && locked) {
+        locked.innerHTML =
+          '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-top:12px">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+          '<div><div style="font-size:13px;font-weight:600;color:#1B5E20">Gap revealed: ' + gap + '</div>' +
+          '<div style="font-size:11px;color:#388E3C;margin-top:2px">Shared with your network via Intel Card</div></div></div>';
+      }
+      card.classList.add('flipped');
+    }
+
+    /* ---- Demo toast for non-wired actions ---- */
+    function showDemoToast(msg) {
+      const existing = document.getElementById('demo-toast');
+      if (existing) existing.remove();
+      const t = document.createElement('div');
+      t.id = 'demo-toast';
+      t.textContent = msg;
+      t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--color-navy);color:#fff;font-size:12px;padding:10px 18px;border-radius:8px;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);opacity:0;transition:opacity 0.2s';
+      document.body.appendChild(t);
+      requestAnimationFrame(() => { t.style.opacity = '1'; });
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 200); }, 3000);
+    }
+
+    /* ---- Intel Card flip front face ---- */
+    function renderIntelCard() {
+      const l = currentListing();
+      const gaps = getGaps();
+      document.getElementById('fc-match-label').textContent = 'Your Match · ' + l.title;
+      const lockedSection = document.getElementById('fc-locked-section');
+      if (!gaps.length) {
+        document.getElementById('fc-stat-num').textContent   = String(l.required.length);
+        document.getElementById('fc-stat-denom').textContent = '/' + l.required.length;
+        document.getElementById('fc-stat-desc').textContent  = 'required skills for this listing';
+        document.getElementById('fc-stat-skill').textContent = 'all matched';
+        document.getElementById('fc-stat-note').textContent  = 'Strong fresher profile for this role';
+        lockedSection.style.display = 'none';
+      } else {
+        const gap = headlineGap();
+        document.getElementById('fc-stat-num').textContent   = String(fractionOf8(gap));
+        document.getElementById('fc-stat-denom').textContent = '/8';
+        document.getElementById('fc-stat-desc').textContent  = 'similar SDE listings this month require';
+        document.getElementById('fc-stat-skill').textContent = gap;
+        document.getElementById('fc-stat-note').textContent  = 'not on most fresher resumes yet';
+        lockedSection.style.display = '';
+      }
+      const checkSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+      const lockSvg  = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+      document.getElementById('fc-badges-container').innerHTML = l.required.map(skill => {
+        const has = state.candidateSkills.has(skill);
+        return '<span class="' + (has ? 'fc-tag-match' : 'fc-tag-gap') + '">' + (has ? checkSvg : lockSvg) + skill + '</span>';
+      }).join('');
+    }
+
+    /* ---- Signal Quality tier cards (dynamic, 4 tiers) ---- */
+    function findExampleForTier(tierKey) {
+      const matches = Object.keys(CORPUS.skills).filter(s => classifyTier(s).key === tierKey);
+      if (!matches.length) return null;
+      return matches.reduce((best, s) => pmi(s) > pmi(best) ? s : best, matches[0]);
+    }
+    function renderTierCards() {
+      const tiers = [
+        { key:'high',         label:'High JD-Text Signal',  cls:'green', condition:'PMI ≥ 2.0 bits AND ≥70% prevalence in this tier',  verdict:'Strongly overrepresented in this tier’s JDs — a high-priority gap to close' },
+        { key:'building',     label:'Building Signal',       cls:'amber', condition:'PMI ≥ 1.0 bit, <70% prevalence or PMI 1.0–2.0',           verdict:'Overrepresented vs. general corpus — worth closing before applying' },
+        { key:'low',          label:'Low Signal',            cls:'grey',  condition:'PMI < 1.0 bit — common across all JDs, not discriminating',     verdict:'Common across all JDs — not a differentiating gap' },
+        { key:'insufficient', label:'Insufficient Data',     cls:'blue',  condition:'<10% prevalence in this tier — too rare to score reliably',     verdict:'Too rare in this corpus to score reliably — verify manually' }
+      ];
+      document.getElementById('tier-cards-container').innerHTML = tiers.map(t => {
+        const ex = findExampleForTier(t.key);
+        const exHtml = ex
+          ? ex + ' for SDE roles: ' + fractionOf8(ex) + ' of 8 listings (' + Math.round(prevalence(ex)*100) + '% prevalence)'
+          : 'No tracked skill currently falls in this tier';
+        return '<div class="card tier-card tier-' + t.cls + '"><div class="card-pad">' +
+          '<span class="tier-pill ' + t.cls + '">' + t.label + '</span>' +
+          '<div class="tier-row"><div class="tier-row-label">Condition</div><div class="tier-row-value">' + t.condition + '</div></div>' +
+          '<div class="tier-row"><div class="tier-row-label">What you see</div><div class="tier-row-value bold">' + t.verdict + '</div></div>' +
+          '<div class="tier-row"><div class="tier-row-label">Live example</div><div class="tier-example">' + exHtml + '</div></div>' +
+          '</div></div>';
+      }).join('');
+    }
+
+    /* ---- Corpus table (PMI-sorted) ---- */
+    function renderCorpusTable() {
+      const shortLabel = { high:'High', building:'Building', low:'Low', insufficient:'Insufficient' };
+      const skills = Object.keys(CORPUS.skills).sort((a,b) => pmi(b) - pmi(a));
+      document.getElementById('corpus-table-body').innerHTML = skills.map(skill => {
+        const tier = classifyTier(skill);
+        return '<div class="corpus-live-row">' +
+          '<span class="clr-skill">' + skill + '</span>' +
+          '<span class="clr-num">' + Math.round(prevalence(skill)*100) + '%</span>' +
+          '<span class="clr-num">' + pmi(skill).toFixed(2) + '</span>' +
+          '<span class="clr-tier"><span class="clr-tier-pill ' + tier.cls + '">' + shortLabel[tier.key] + '</span></span>' +
+          '</div>';
+      }).join('');
+    }
+
+    /* ---- Bayesian credible interval engine (Beta-Binomial conjugate) ---- */
+    const BAYES_SCHEDULE  = [0, 10, 50, 150, 400, 1000];
+    const BAYES_ALPHA0    = 2;
+    const BAYES_BETA0     = 1;
+    const BAYES_TRUE_RATE = 0.78;
+
+    function logGamma(x) {
+      const cof = [76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+      let y = x, tmp = x + 5.5;
+      tmp -= (x + 0.5) * Math.log(tmp);
+      let ser = 1.000000000190015;
+      for (let j = 0; j < 6; j++) { y += 1; ser += cof[j] / y; }
+      return -tmp + Math.log(2.5066282746310005 * ser / x);
+    }
+    function betacf(x, a, b) {
+      const MAXIT = 200, EPS = 3e-12, FPMIN = 1e-300;
+      const qab = a+b, qap = a+1, qam = a-1;
+      let c = 1, d = 1 - qab*x/qap;
+      if (Math.abs(d) < FPMIN) d = FPMIN; d = 1/d;
+      let h = d;
+      for (let m = 1; m <= MAXIT; m++) {
+        const m2 = 2*m;
+        let aa = m*(b-m)*x/((qam+m2)*(a+m2));
+        d = 1+aa*d; if (Math.abs(d)<FPMIN) d=FPMIN; c=1+aa/c; if (Math.abs(c)<FPMIN) c=FPMIN; d=1/d; h*=d*c;
+        aa = -(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+        d = 1+aa*d; if (Math.abs(d)<FPMIN) d=FPMIN; c=1+aa/c; if (Math.abs(c)<FPMIN) c=FPMIN; d=1/d;
+        const del = d*c; h *= del;
+        if (Math.abs(del-1) < EPS) break;
+      }
+      return h;
+    }
+    function regIncBeta(x, a, b) {
+      if (x <= 0) return 0; if (x >= 1) return 1;
+      const bt = Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log(1-x));
+      return x < (a+1)/(a+b+2) ? bt*betacf(x,a,b)/a : 1-bt*betacf(1-x,b,a)/b;
+    }
+    function betaInv(p, a, b) {
+      let lo = 0, hi = 1;
+      for (let i = 0; i < 100; i++) {
+        const mid = (lo+hi)/2;
+        regIncBeta(mid,a,b) < p ? lo=mid : hi=mid;
+      }
+      return (lo+hi)/2;
+    }
+    function bayesCompute(n) {
+      const successes = Math.round(n * BAYES_TRUE_RATE);
+      const a = BAYES_ALPHA0 + successes, b = BAYES_BETA0 + (n - successes);
+      return { mean: a/(a+b), lo: betaInv(0.05,a,b), hi: betaInv(0.95,a,b) };
+    }
+    function renderBayes() {
+      const slider = document.getElementById('n-slider');
+      if (!slider) return;
+      const n = BAYES_SCHEDULE[parseInt(slider.value)];
+      const r = bayesCompute(n);
+      document.getElementById('bayes-mean').textContent  = Math.round(r.mean*100) + '%';
+      document.getElementById('bayes-width').textContent = Math.round((r.hi-r.lo)*100) + 'pts';
+      const fill = document.getElementById('bayes-ci-fill');
+      fill.style.left = (r.lo*100)+'%'; fill.style.width = ((r.hi-r.lo)*100)+'%';
+      document.getElementById('bayes-ci-mean').style.left = (r.mean*100)+'%';
+      const noteEl = document.getElementById('bayes-note');
+      if (n === 0) {
+        noteEl.innerHTML = 'With 0 confirmed outcomes, the credible interval is wide — the prior is doing most of the work. As Recruiter Echo confirms outcomes (Recruiter View → Priya’s row), the interval narrows. Drag the slider to see it live.';
+      } else {
+        noteEl.innerHTML = 'With ' + n.toLocaleString() + ' confirmed outcomes, the 90% credible interval has narrowed to ' + Math.round(r.lo*100) + '–' + Math.round(r.hi*100) + '%. More Recruiter Echo confirmations make this estimate trustworthy faster.';
+      }
+    }
+
+    /* ---- Master render ---- */
+    function renderAll() {
+      renderListingSelector();
+      renderSkillToggles();
+      renderListingCard();
+      renderVerdict();
+      renderSkillsBreakdown();
+      renderExperienceSalary();
+      renderIntelCard();
+      renderTierCards();
+      renderCorpusTable();
+    }
+
+    /* ============================================================
+       INIT
+    ============================================================ */
+    updateShellHeight();
+    window.addEventListener('resize', updateShellHeight);
+    renderAll();
+    renderBayes();
+    document.getElementById('n-slider').addEventListener('input', renderBayes);
+  </script>
+</body>
+</html>
