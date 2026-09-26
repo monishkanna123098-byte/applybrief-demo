@@ -35,6 +35,26 @@ gen1_year = V("gen1_excess_failures") / years * V("blended_cost_per_failure_inr"
 top_churn = attr.iloc[0]
 churn_year = top_churn["churn points removed"] * cohort_per_year * V("retained_rider_year_value_inr")
 
+concentrated = V("top10pct_stations_failure_share", 0) >= 1.8 * V("top10pct_stations_attempt_share", 1)
+gen1_major = gen1_ratio >= 1.5 and V("gen1_excess_share_of_all_failures", 0) >= 0.2
+failures_outgrew = V("growth_failures_x", 0) > V("growth_completed_x", 0)
+retention_fell = V("m2_retention_last_q", 0) < V("m2_retention_first_q", 0)
+conc_txt = (f"Failures are not network-wide: the worst ten percent of stations produce {pct(V('top10pct_stations_failure_share'), 0)} of them."
+            if concentrated else
+            f"Failures are fairly spread out: the worst ten percent of stations produce {pct(V('top10pct_stations_failure_share'), 0)} of them.")
+gen1_txt = (f"The biggest single cause is old Gen1 cabinets in the heat: above 40 degrees they fail {gen1_ratio:.1f} times as often as Gen2 "
+            f"in the same conditions, about {pct(V('gen1_excess_share_of_all_failures'), 0)} of all failures."
+            if gen1_major else
+            f"Charger generation matters less than expected: in hot hours Gen1 fails {gen1_ratio:.1f} times as often as Gen2, "
+            f"about {pct(V('gen1_excess_share_of_all_failures'), 0)} of all failures.")
+growth_txt = (f"But service failures grew {V('growth_failures_x'):.1f} times" if failures_outgrew
+              else f"Service failures grew {V('growth_failures_x'):.1f} times")
+ret_txt = (f"new-rider retention fell from {pct(V('m2_retention_first_q'), 0)} to {pct(V('m2_retention_last_q'), 0)}" if retention_fell
+           else f"new-rider month-2 retention was {pct(V('m2_retention_overall'), 0)}")
+cost_txt = (f"One failed swap costs {inr(V('direct_cost_per_failure_inr'))} right away, and {inr(V('churn_cost_per_early_failure_inr'))} "
+            f"when it drives a new rider away." if V("direct_cost_per_failure_inr", 0) > 0 and V("churn_cost_per_early_failure_inr", 0) > 0
+            else f"{pct(1 - V('failures_recovered_1h', 0), 0)} of riders who hit a failure did not complete a swap within the hour.")
+
 levers_inr = pd.DataFrame([
     ("Fix or cool Gen1 cabinets in the hot hours", gen1_year, f"{V('gen1_excess_failures'):,.0f} excess failures over the period"),
     (f"Replace outlier battery lots ({bad_lots_txt or 'none found'})", V("bad_lot_excess_wear_run_rate_year_inr", 0), "excess wear at current run-rate"),
@@ -86,8 +106,7 @@ report = f"""<!doctype html><html><head><meta charset="utf-8"><title>VoltRelay A
 <p>Between January 2024 and June 2025 VoltRelay's completed swaps grew {V('growth_completed_x'):.1f}× and revenue
 {V('growth_revenue_x'):.1f}×, but service failures grew {V('growth_failures_x'):.1f}× (failure rate {pct(V('failure_rate_first3'))} →
 {pct(V('failure_rate_last3'))}) and contribution per swap moved from ₹{V('contribution_per_swap_first3'):.1f} to
-₹{V('contribution_per_swap_last3'):.1f}. The failures are concentrated, not network-wide: the worst 10% of stations produce
-{pct(V('top10pct_stations_failure_share'), 0)} of them. Converting every problem into rupees per year ranks the fixes:</p>
+₹{V('contribution_per_swap_last3'):.1f}. {conc_txt} Converting every problem into rupees per year ranks the fixes:</p>
 <table><tr><th>Priority</th><th>Action</th><th>Value per year</th><th>Basis</th></tr>
 {''.join(f"<tr><td>{i + 1}</td><td>{_html.escape(r.action)}</td><td>{inr(r.inr_per_year)}</td><td>{_html.escape(r.basis)}</td></tr>" for i, r in enumerate(levers_inr.itertuples()))}</table>
 
@@ -113,7 +132,7 @@ a difference-in-differences test for the pricing pilot; and a churn model cross-
 rather than invented capex.</li></ol>
 
 <h2>4. Key insights</h2>
-<h3>4.1 The metrics disagree: growth hid a quality problem</h3>
+<h3>4.1 {"The metrics disagree: growth hid a quality problem" if failures_outgrew else "Network performance over time"}</h3>
 {img('q1_four_metrics', 'Monthly completed swaps, revenue, service-failure rate and contribution per swap.')}
 {img('q1_margin_bridge', 'Per-swap margin bridge, first quarter to last quarter.')}
 <h3>4.2 Failures are concentrated in time and place</h3>
@@ -167,9 +186,8 @@ script = f"""# VoltRelay — 3-minute video script
 Speakers: **Monish Kannaha S A** (M) and **Lokeshkumar K** (L). About 420 words ≈ 3 minutes. Show the report charts named in brackets.
 
 **[0:00–0:30] M — The business problem** [q1_four_metrics]
-VoltRelay's swaps grew {V('growth_completed_x'):.1f} times and revenue {V('growth_revenue_x'):.1f} times in eighteen months. But service failures
-grew {V('growth_failures_x'):.1f} times, new riders stopped coming back, and each swap now earns ₹{V('contribution_per_swap_last3'):.0f} instead of
-₹{V('contribution_per_swap_first3'):.0f}. Leadership has four budget proposals on the table. Our job: find what is really driving this before they spend.
+VoltRelay's swaps grew {V('growth_completed_x'):.1f} times and revenue {V('growth_revenue_x'):.1f} times in eighteen months. {growth_txt},
+{ret_txt}, and contribution per swap went from ₹{V('contribution_per_swap_first3'):.0f} to ₹{V('contribution_per_swap_last3'):.0f}. Leadership has four budget proposals on the table. Our job: find what is really driving this before they spend.
 
 **[0:30–1:05] L — Our approach**
 We cleaned all nine data issues first — for example {int(V('clock_bug_events')):,} timestamps from a firmware bug were shifted by five and a half hours,
@@ -177,13 +195,12 @@ and {int(V('duplicates_removed')):,} duplicate records removed. Then we built a 
 used models to separate overlapping causes, and converted every problem into one currency: rupees per year.
 
 **[1:05–2:15] M and L — What we found** [q2_concentration, q3_heat_by_generation, q4_lot_degradation, q6_attributable_churn]
-M: Failures are not network-wide. The worst ten percent of stations produce {pct(V('top10pct_stations_failure_share'), 0)} of them.
-L: The biggest cause is old Gen1 cabinets in the heat: above 40 degrees they fail {gen1_ratio:.1f} times as often as Gen2 in the same conditions —
-about {pct(V('gen1_excess_share_of_all_failures'), 0)} of all failures.
+M: {conc_txt}
+L: {gen1_txt}
 M: {('Battery lots ' + bad_lots_txt + f" wear out {V('bad_lot_degradation_multiple'):.1f} times faster, eating margin and range.") if BAD_LOTS else 'Battery wear is steady across lots.'}
 L: And new riders who hit a stockout in their first two weeks stay only {pct(V('retention_with_stockout'), 0)} of the time, versus
 {pct(V('retention_no_stockout'), 0)} without one. {('Primary churn drivers: ' + ', '.join(primary) + '.') if primary else ''}
-M: One failed swap costs {inr(V('direct_cost_per_failure_inr'))} right away, and {inr(V('churn_cost_per_early_failure_inr'))} when it drives a new rider away.
+M: {cost_txt}
 
 **[2:15–3:00] L — Recommendations** [levers table]
 """ + "\n".join(f"{i + 1}. {r.action} — about {inr(r.inr_per_year)} a year." for i, r in enumerate(levers_inr.itertuples())) + f"""
