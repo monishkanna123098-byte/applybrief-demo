@@ -54,8 +54,9 @@ site_rows = []
 for m in months:
     m0, m1 = m.start_time, m.end_time
     open_ = (st_open["commissioned_date"] <= m1) & (st_open["decommissioned_date"].isna() | (st_open["decommissioned_date"] >= m0))
-    days_open = ((np.minimum(st_open["decommissioned_date"].fillna(m1), m1) -
-                  np.maximum(st_open["commissioned_date"], m0)).dt.days + 1).clip(lower=0)
+    end = st_open["decommissioned_date"].fillna(m1).clip(upper=m1)
+    start = st_open["commissioned_date"].clip(lower=m0)
+    days_open = ((end - start).dt.days + 1).clip(lower=0)
     frac = days_open / m.days_in_month
     cost = (st_open["monthly_rent_inr"] + st_open["monthly_maintenance_inr"]) * frac
     site_rows.append(pd.DataFrame({"station_id": st_open["station_id"], "month": m, "site_cost_inr": cost.where(open_, 0)}))
